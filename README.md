@@ -1,404 +1,348 @@
-# Globalscape Git FAQ
+# Globalscape Git Workflow
 
-NOTE: This document is currently **under construction**. 
+** This page is currently under construction. ** A handy dandy guide for your friendly neighborhood Globalscape Git developer.
 
-This document is intended to be supplemental to [Git Workflow](Git Workflow.md). It details frequently asked questions related to git processes at Globalscape.
-
-Globalscape Git resources
-* [Git FAQ](Git FAQ.md)
+Globalscape Git Resources:
 * [Git Workflow](Git Workflow.md)
-* [Git Beginner Guide](Git Beginner Guide.md)
+* [Git FAQ](Git FAQ.md)
+* [Git Beginner Guide](Git Beginner Guide.md)    
+
+**If you are new to git, please see [Git Beginner Guide.md](Git Beginner Guide.md) for first time set-up and the basics.**
 
 Contents:
-* General FAQs
-* Branch Structure Overview
-* About Rebase Process
-* About Pull Requests
-* How do I recover from mistakes or a bad command?
-
-
-## General FAQs
-
-### How does this differ from the published Gitflow docs?
-
-Git Workflow.md is an overview of the process we should use for git version control at Globalscape. Git FAQ.md covers frequently asked questions not covered by the workflow and should 
-be used as a supplemental resource in conjuction with Git Workflow.
-
-### What does "cherry pick" mean?
-
-One way to apply committed work from one branch onto another is to cherry-pick it. It takes the work that was introduced
- in a commit and tries to reapply it on the branch you’re currently on. Essentially, you are taking the work you already did in one branch and automatically re-doing this work in a 
- different branch. This is useful if you have a number of commits on a branch and you want to integrate only one of them to a different branch, or
-  if you only have one commit on a topic branch and you’d prefer to cherry-pick it rather than run rebase.
-  
-  TODO - example cherry pick scenario
-
-### What does "squash" or "squashing" mean? 
-
-In the generic sense, Squashing is the process of merging two or more commits into one. In the specific sense, it refers to a rebase option that merges this 
-commit into the parent and appending the message to the parent. For a squash example, see [Git Workflow.md](Git Workflow.md) "3. a) Cleaning up your commits before a pull request with interactive rebase".
-
-### Which version is master?
-
-Master is the vNext (version Next), where the changes that will be in the *next* version go. It is the clean branch; all changes to master must have been through QA first. 
-It should always reflect a production-ready state.
-
-TODO - this could be better
-
-#### What can be put directly into master? 
-
-Only code that has been through the QA process can be put in master. This means nothing can be put *directly* into master. (Everything must go through a peer review process before entering
- master, and feature branches should not come directly off of master.)
-
-### What is the difference between local and remote branches?
-
-For every git branch you have on your machine, there is a local and remote branch. The local branch refers to the version of the branch on your local machine that you make changes to. Git also creates a remote branch to keep track of these changes.
-This remote branch exists on the git server, updating itself with changes made on the local branch when you `git push...`. When you do a push, you tell git to update the remote branch with any changes you have committed on your local branch. 
-For example, let's say you make a feature branch JS_12345 with the command `git checkout -b JS_12345`. This will create a local branch `JS_12345` on your machine and a remote branch `origin JS_12345` on the git server. The `origin` is the default
-designation of a remote branch. When you do a `git commit ...` the changes are applied only to the local branch `JS_12345`. The remote branch will not be updated with the changes; you must use `git push ...` to communicate those local commits 
-to the remote branch `origin JS_12345`.
-
-### Which branch should I branch off of? 
-
-#### For maintenance work
-* You should branch off a `quarterly maintenance` branch.
-* If this is a *fix in current version*:
-  * Use this quarter's `quarterly maintenance` branch off of `master` (ex. `Q1_2017`)
-    * **Note**: If you are notified that QA is *at capacity* for the current quarter, you will need to use the branch corresponding to the next quarter.
-* If this is a *fix in previous version*:
-  * Use this quarter's `quarterly maintenance` branch off the `release` branch corresponding to the previous version (ex. `7.2_Q1_2017`)
-  * **Note**: If you are notified that QA is *at capacity* for the current quarter, you will need to use the branch corresponding to the next quarter.
-
-#### For roadmap work
-* You should branch off of the roadmap branch corresponding to your project.
-* If your roadmap project has multiple roadmap branches, choose whichever <roadmap>_<sub_topic> branch makes the most sense to you.
-  
-#### For hotfix
-* You should branch off from wherever the change is needed. If you need to pull an exact build number, see "How do we pull an exact build?" below.
-
-### Who is 'in charge' of a given branch?
-
-This person is in charge of any rebases on the given branch as well as initiating any necessary pull requests when the work on the branch is complete.
-
-* `Master` - **No one.** No one will need to rebase or 
-* `Feature` - **Whomever is the initals for the feature branch.** (Feature branches should follow the naming convention <initials>_<workItem ID>)
-  * When a given feature branch is under peer review, the peer reviewers can also be considered 'in charge' of the branch.
-* `Quarterly maintenance` - Currently, **Lonnie French** is in charge of these branches. This page will be updated if that changes.
-* `Release` - **No one.** Since release branches contain previous releases, they will never need to be rebased with master or pull requested into master (or any other branch).
-* `Roadmap` (development) - The **team lead** for that roadmap project.
-  * When the team lead is absent, another team lead may be temporarily 'in charge'.
-  * When all team leads are absent, a team lead may (before leaving) designate someone (who is confident with rebase) to be temporarily 'in charge'.
-
-If you're unsure what the difference between the types of branches are, see the "Branch Structure Overview" section.
-
-### How do we deal with maintaining two releases?
-
-With the understanding that releases are referred to as *major.minor.revision.build* where a *major* release would be version 7, a *minor* release would be version 7.2, a *revision* number is designated as 7.2.3, and a *build* number 
-is designated as 7.2.3.19. We maintain the current and previous minor releases, so if we are currently on minor release 7.3, we maintain both 7.3 and 7.2. The current minor release is maintained on the `master` branch, and the previous 
-minor release is maintained on a `release` branch. Every time a build or revision is made, it is tagged with a git tag on the appropraite branch.
-
-Note: As an artifact, our current `release` branch for the previous minor release is incorrectly called 7.2.2. The subsequent `release` branches will have the correct name.
-
-### How do I pull an exact build?
-
-Every build should be tagged in git. Typing `git tag` should list all of the available tags (try `git fetch --tags` if you're missing tags). You can perform a search with `grep` by typing `git tag | grep "7.3.4"`. Replace `"7.3.4"` with any text you want to search for.
-You can go to a tag, for example `EFT/EFT_7.1.0_build_1`, via `git checkout -b EFT/EFT_7.1.0_build_1`. This creates a new branch in the state of the specified tag (named the same as the tag). Note that you will not need to do any rebases since this
-branch should not receive new updates. Remember to delete this branch when work is complate
-
-Quick reference:
-* `git tag | grep <build number>` to search for a tag
-* `git checkout -b <tag_name>` to create a branch with the state of when the tag was created.
-* Remember to delete this branch when your work is complete.
-
-**CAUTION: This 'exact build' branch should not interact with other branches.** If you want changes you make on this branch to be included in some other branch, you **must cherry-pick** the changes.
-* See "What does "cherry pick" mean?" for more info on cherry picking.
-
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-## Branch Structure Overview
-
-### What is the branch naming convention? What do I name my branch?
-
-See each branch type below for their naming conventions.
-
-### What is a roadmap branch?
-
-Each roadmap branch corresponds to a roadmap project. This branch type is commonly referred to as a *development branch*.
-
-#### Naming convention
-
-`<roadmap_name>` --- Example: `MESAT-II`
-* Where `<roadmap_name>` is a descriptor referencing the roadmap project.
-* If the project requires multiple mainline branches, use `<roadmap_name>_<sub_topic>` --- Example: `AWS_AutoScaling` and `AWS_Metered`
-
-#### Example roadmap branches
-
-![](/lib/images/develop-branch.jpg)
-
-### What is a release branch?
-
-Release branches are branches where we maintain previous releases. For example, if the current version number is 7.3, branch "7.2" would be a release branch. Since release branches correspond to previous releases,
- they should *never* be rebased with `master`. (That is to say, release branches should not be updated to reflect the state of the master branch.)
-
-#### Naming convention
-
-`<version_number>` --- Example: `7.2`
-* Just the version number is sufficient to be unique. 
-
-#### Example release branch
-
-Release branches should never have `master` rebased onto them. If a change from `master` branch is needed on the `release` branch, it should be cherry-picked. See "What does "cherry pick" mean?" for more on cherry picking.
-
-![](/lib/images/maintenance-branch.jpg)
-
-### What is a quarterly maintenance branch?
-
-This branch is used to encompass code changes for each quarter that are not within the scope of a roadmap project (primarily maintenance work). 
-
-#### Naming Convention
-
-`<parent_branch>_Qx_20xx` --- Example: `7.2.2_Q1_2017`
-* Where `<parent_branch>` is the name of whichever branch this quarterly maintenance branch is coming from and the `x`s are the quarter number and year.
-* When `master` is the parent branch, the name can just be `Qx_20xx` --- Example: `Q3_2017` 
-
-#### Example quarterly maintenance branches
-
-Quarterly maintenance branches are off of `master` and `release` branches. 
-
-![](lib/images/quarterly-branch.jpg)
-
-### What is a feature branch (topic branch)?
-
-A feature branch, pictured in orange, is a branch created by an individual to complete development work on a TFS work item. These can branch off from any branch except `master`.
-
-#### Naming convention
-
-`<initials>_<workItem ID>` --- Example: `JS_38527`    
-* For example, if John Smith is working on Bug #38527, he would create a feature branch called `JS_38527` for his development work.
-
-##### Why is the naming convention for feature branches `<initials>_<workItem ID>`?
-It is preferred to prefix your feature branch's name with your initials followed by the TFS Requirement or Bug number.  This way when it is saved to the server, 
-everyone can see who owns a particular branch and know which requirement or bug this relates to.  You can easily find your branches and delete them when work is complete
- since they are prefixed with your initials.  This way you don't accidentally delete somebody else's branch.
-
-#### Example feature branches
-
-This example shows that feature branches can come off of any branch but `master`. Also note that the feature branch will rebase with its parent branch (the pink arrows). This should happen daily.
-See [Git Workflow.md](Git Workflow.md) 2. a) Making sure you're up to date with rebase"
-
-![](lib/images/temporary-branch.jpg)
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-## About Rebase Process
-
-### Why do we rebase?
-
-We rebase to integrate code changes frequently, resolving conflicts as they occur (instead of at the end of a project's life). 
-1. More frequent integration makes it more likely that git will be able to automatically resolve changes without developer input.
-2. When a conflict occurs, it will be smaller in scope and the conflicting code changes will be more recent and fresh in the developers` minds.  
-
-Rebasing results in fewer conflicts when the final merge (in the form of a pull request) happens.
-
-### What does rebase do?
-
-Rebasing is the process of moving a branch to a new base commit. From a content perspective, rebasing is just moving a branch from starting off of one commit on the parent branch to starting off of another. In other words, you are updating
- the feature branch to include changes from its parent branch. Note that internally, Git accomplishes this by creating new commits (*) and applying them to the specified base — literally rewriting your project history. 
-It’s important to understand that, even though the branch looks the same, it’s composed of entirely new commits. 
-
-The command `git rebase <base>` rebases the current branch *onto* <base>. In our case, base will be the <parent_branch>. The general process can be visualized as the following:
-
-![](lib/images/rebase-example.png)
-
-### How do I rebase?
-
-#### For feature branches
-
-* See [Git Workflow.md](Git Workflow.md) "a) Making sure you're up to date with rebase". 
-
-#### For roadmap branches
-
-* Note that only the team lead of the roadmap project should perform rebase operations on the roadmap branch. 
-  * If a team lead is absent, see "Who is 'in charge' of a given branch?" above for exceptions.
-* Instructions can be found under "Team Lead Workflow" in [Git Workflow.md](Git Workflow.md).
-
-### When should rebases happen?
-
-You should **only rebase in branches you are *in charge* of**. (See "Who is 'in charge' of a given branch?" for help.) In most cases, a rebase should happen daily (see specific cases and picture below). This is done to ensure branches are never more than a day behind any changes relevant to the branch. That means that when we say "rebase daily", we really mean, 
-"rebase daily if there are any changes". For an example of "rebase daily if there are any changes", see [Git Workflow.md](Git Workflow.md) "2. a) Making sure you're up to date with rebase" (covers feature branches).
-
-Note the terminology: To have *master rebased onto roadmap* or to *rebase master onto roadmap* means that `roadmap` will get any new changes made on `master` since the last rebase.
-
-In what cases do rebases happen? (The pink arrows represent rebases.) **Again: Do not rebase in any branches that you are not 'in charge' of**
-* Daily (if there are changes):
-  * All `roadmap` branches should have `master` rebased onto them. (aka update `roadmap` with any new changes from `master`)
-  * All `quarterly maintenance` branches should have `master` rebased onto them.
-  * All `feature` branches should have their parent branch rebased onto them (unless the parentage invovles a `release` branch).
-* Special cases:
-  * `release` branches never have `master` rebased onto them 
-    * In the case where a `release` branch needs the same change as `master`, the change should be *cherry-picked* either directly from `master` or from master's `quarterly maintenance` branch. (See "What does "cherry pick" mean?" above)
-  * ***1** - If a *cherry pick* occurrs here, both the `quarterly` branch and the any subsequent `feature` branches should be updated with the new code changes using rebase.
-  * ***2** - If a different feature branch is merged (via pull request) into the `quarterly` branch, any other `feature` branches should be updated with the new code changes using rebase.
-  
-For information about the different branch types, see "Branch Structure Overview".
-
-![](lib/images/rebase-overview.jpg)
-
-### How do I force push?
-
-**You may only force push to branches you are 'in charge' of.** (See "Who is 'in charge' of a given branch?" for help.)
-
-* Please create a backup branch since force pushing disables safety checks and **can cause the remote repository to lose commits**.
-* Create a backup of your branch:
-  * `git checkout -b <branch>_BACKUP`
-* Go back to your branch and force push:
-  * `git checkout <branch>`
-  * `git push --force origin <branch>`
-* Keep the backup branch around until you are *absolutely sure* everything went through the way you want it.
-* Once you are sure, delete the backup branch: `git branch -D <branch>_BACKUP`
-* If you need to 'undo' your force push, see "How do I recover with a backup branch?" below.
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-## About Pull Requests
-
-### When is a pull request used?
-
-A pull request is required when rejoining feature branches to their correpsonding parent branch (usually a roadmap branch). This is when net-new work is being pushed into the larger scheme, 
-and their purpose is to serve as a common forum for a formal Peer Review. A pull request should also be used when using 'cherry-pick' to apply changes from one branch onto another. Pull requests are not 
-required for rejoining a roadmap branch back to master. However, note that **only the person 'in charge' of the roadmap branch may do this**. 
-
-between which branches; when? how? manageing code conflicts
-
-### How do I generate a pull request?
-
-See [Git Workflow.md](Git Workflow.md) "4. Create a pull request with the work item ID prepended (ex. "Req #1234 ...")"
-
-### How do peer reviews work?
-
-Developers should add one or more peer reviewers to every pull request. If you're not sure who to add as a reviewer, see "Who should I add as a peer reviewer?" below.
-
-### What do I do as a peer reviewer?
-
-The Peer Reviewer should go to the Pull Requests page and select "Assigned to me" to find his/her assigned Pull Requests. Notes can be made on the overall commit, on an individual file, or on an individual line.
- TFS will also evaluate whether the commit can be merged into master without conflicts. If there are conflicts, the peer reviewer should rebase the commit onto master and resolve the conflicts before beginning the review. This is a special case 
- where someone other than the person 'in charge' is allowed to perform rebase on a branch. 
-
-  * Make sure the branch is up to date (using rebase if necessary).
-    * (This is a special case where someone other than the person 'in charge' is allowed to perform rebase on a branch.)
-  * Look over the code changes, making comments and asking questions as necessary.
-  * Once you have addressed any issues, decide if you Approve or Reject the changes.
-    * Find your name under "Reviewers"
-    * Change the drop down box value from `No response` to your response (`Approved`, `Rejected`, etc.)
-      * If you change your response to something other than `Approved` make a note of why so the owner of the pull request can make changes..
-  * **If you are the last (or only) peer reviewer to Approve changes, you are responsible for completing the pull request.**
-    * Double check the branch has been rebased with the most up to date changing (rebasing as necessary)
-    * Double check that there are still "No merge conflicts" (resolving conflicts as necessary)
-    * Complete the pull request by clicking "Complete pull request" (But first check to make sure there are "No merge conflicts", resolving conflicts if necessary)
-
-### Who should I add as a peer reviewer?
-
-See [Git Workflow.md](Git Workflow.md) "c) Adding peer reviewer(s)."
-
-### How do I manage code conflicts?
-
-Go into the file(s) with conflicting changes and manually alter the conflicting code to resolve conflicts. Once you commit and push these changes, they will show up on the pull request in TFS. 
-You may have to click on "Target branch updated | re-evaluate" in the top right to check if there are still merge conflicts.
-
-**TODO** no idea how correct this is. help
-
-### Why does a pull request have the 'wrong' author? How do I see the 'real' author of changes? (Does the pull request replace the author?)
-
-The author of a pull request will be the peer reviewer who hits "Complete pull request". The author of the code changes can be found found on the original commit (see example below).
-
-Note that both the green and red commits are about Bug #341573. The difference is that the PR 877 commit shows the author as the peer reviewer who completed the PR, and the original commit shows the author as the person who made the code changes.
-
-![](lib/images/pr-author.png)
-
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-## How do I recover from mistakes or a bad command?
-
-### How do I reset git to a pervious state?
-
-If you did not create a backup branch, you can reset git to a previous state with git reset.
-
-* You should be able to see a log of what git has done recently by running:
-  * `git reflog`
-* It should look something like: 
+* General Workflow
+* Hotfix Workflow
+* Team Lead Workflow
+
+
+## General Workflow
+
+This is the default workflow for completing TFS requirements and bugs. The other workflows are for special cases, such as hotfix (see below).
+
+### 1. Find a work item (requirement or bug) to work on in TFS
+
+#### a) Finding an open work item
+
+* In [TFS](https://gstfs1/tfs/DefaultCollection/globalscape/_dashboards), navigate to the **WORK** tab.
+* To see all work items in the backlog, click the **Backlogs** tab.
+* To query for a subset of work items or view pre-made queries, click the **Queries** tab.
+
+##### For maintenance work
+
+* A work item is `Ready to Work` if:
+	* The Requirement or Bug is assigned to a Project Manager (currently that is `Erica Schaefer` or `Gene Burnell`).  
+	**and**
+	* The Requirement or Bug `State` is set to `Proposed`.   
+	**and**
+	* There is a development `Task` associated with this Requirement or Bug. You can check this by:
+		* Double click the work item.
+		* Find the **ALL LINKS** tab and click it.
+		* See if there is a `Task` item linked as a `Child`.
+		* Note that even if the `Task` is assigned to someone else, you may take over the work item as    
+			long as the parent Requirement or bug is assigned to a Project Manager.
+	
+* A pre-made TFS ready to work maintenance query is located at [EFT Server - EFT - Q1 - 2017 - Backlog Ready to Work](https://gstfs1/tfs/DefaultCollection/globalscape/EFT%20Server/_workitems?path=Shared%20Queries%2FEFT%20Server%20-%20EFT%20-%20Q1%20-%202017%20-%20Backlog%20Ready%20to%20Work&_a=query)
+
+##### For roadmap work
+
+Note that this documentation covers roadmap work after the estimation process is complete and development begins.
+
+* If your team assigns Requirements or Tasks to individual developers during the estimation process, work on whichever work items you are `Assigned To`.
+* Otherwise:
+	* Navigate to the iteration for your roadmap project (Ask your team lead if this is unclear).
+	* A work item is `Ready to Work` if:
+		* The Requirement is assigned to the Project Manager (this should be `Gene Burnell`).    
+		**and**
+		* The Requirment `State` is set to `Active`
+
+#### b) Claim the open work item to begin work
+
+##### For maintenance
+
+* In the work item under **STATUS**
+	* Set the `Assigned To` field to yourself
+	* Set the `State` to `Active`
+* For any child `Task` that you work on, under **STATUS**
+	* Set the `Assigned To` field to yourself
+	* Set the `State` to `Active`
+	
+##### For roadmap
+
+* In the work item under **STATUS**
+	* Set the `Assigned To` field to yourself
+* For any child `Task` you work on, under **STATUS**
+	* Set the `Assigned To` field to yourself
+	* Set the `State` to `Active`
+	
+	
+### 1. Create a feature branch for development 
+
+This feature branch should be named following the convention `<initials>_<workItem ID>` where `<workItem ID>` is the requirement or bug number (ex. "JS_42169" or "jms_42169" etc.).
+
+#### a) Creating the feature branch 
+
+* Navigate to the branch the changes are needed on: 
+	* `git checkout <branch_name>` --- Example: `git checkout EFT_MESAT-II`
+	
+Note that we will refer to this branch `<branch_name>`, as the parent branch from now on (because it is the branch you will create your new branch from, making this branch a 'parent' and your new branch a 'child').
+For help deciding which branch your changes are needed on, see "Which branch should I branch off of" in [Git FAQ.md][(Git FAQ.md).
+
+* Create your new branch: 
+	* `git checkout -b <initials>_<workItem ID>` --- Example: `git checkout -b JS_34217`
+	
+Note that you may have to, for example, fix a bug for two versions. In this case, append the version number to one of the branches to avoid duplicate names: `<initials>_<workItem ID>_<version>` --- Example: `HB_21972_7.2`
+
+### 2. Do the necessary work. Once a day: Rebase from your parent branch and push your changes to the server
+
+#### a) Making sure you're up to date with rebase
+
+This rebase is to ensure that your local project is up to date with the most recent changes. First, you will check to see if there are any changes that need    
+to be rebased. If there are no changes, there is no need to rebase (since there is nothing to rebase). If there are changes, you will perform the rebase for your branch.   
+See [Git FAQ.md](Git FAQ.md) "What does rebase do?" for more information on how rebase works.
+
+Follow these steps:
+1. Check to see if there are any changes from the parent of your feature branch:
+	* `git checkout <parent_branch>` 
+	* `git pull --rebase`
+	* If the pull returns changes it means you need to rebase, proceed to step 2.
+	* If the pull returns no changes, then check to see if there are any changes from master that your parent is missing:
+		* `git checkout master`
+		* `git pull --rebase`
+		* If this returns no changes, you're done! There are no changes that need to be rebased.
+		* If there are changes, this means that there are changes on master branch that have not gotten to your parent branch:
+			* Contact whoever is *in charge* of <parent_branch> and ask them to perform a rebase for <parent_branch>.
+				* See [Git FAQ.md](Git FAQ.md) "Who is 'in charge' of a given branch?" for help.
+			* Once the rebase is completed on their end, repeat this process from step 1.
+2. Rebase your feature branch onto its parent branch:
+	* To rebase: Run `git rebase <parent_branch>` from your feature branch.
+	* Note: **If you are not comfortable with the rebase command, please create a backup branch first.** 
+		* Push all changes to avoid losing work.
+		* Create a backup with: `git branch -m <feature_branch> <feature_branch>_BACKUP`
+			* That is, `git branch -m <original> <backup>`
+		* Then switch back to your feature branch: `git checkout <feature_branch>`
+		* To use the backup: See [Git FAQ.md](Git FAQ.md) "How do I recover with a backup branch?".
+	
+Note: After rebase operations, you may need to force push to your feature branch. **Remember you can only force push to a branch you are 'in charge' of.** See [Git FAQ.md](Git FAQ.md) "How do I force push?" for help.
+
+#### b) Pushing your changes to the server at least once a day
+
+This step ensures you do not lose more than one day of work if there are problems with your local machine. It doesn’t matter if you have a bunch of messy,    
+needless commits. You can squash those later. (Squash is covered in the next step, step 3: "When work is complete, clean up your commits".)
+
+* From your feature branch, check the files which have changed: 
+	* `git checkout <feature_branch>`
+	* `git status`
+	
+This will display if your branch is up to date or it will list out the files that have changed.     
+See [Git Beginner Guide.md](Git Beginner Guide.md) "Checking the status of your files" for help with `git status`.
+
+* Add files you want to commit to the staging area:
+    * `git add <filename>` --- Example: `git add filename.cpp`
+	* You can use `git status` again to check that you've added the correct files before committing.
+    * `git commit -m '<commit message>'` --- Example: `git commit -m "Requirement #999 - Made change XYZ"`
+
+Note the use of the #999; where a hash tag is followed immediately by a TFS work item number, TFS will automatically link the source code commit with the TFS work item, and all changes can be traced back. Very important.     
+See [Git Beginner Guide.md](Git Beginner Guide.md) "Tracking new changes" and "Committing your changes" for help with `git add` and `git commit`.
+
+* Pushing your work to the remote feature branch
+	* If the remote branch does not exist: 
+		* `git push -u origin <branch name>` --- Example: `git push -u origin AM_38714`
+	* If the remote branch exists: 
+		* `git push origin <branch name>` --- Example: `git push origin AM_38714`
+	* Note that after rebase operations, you may need to force push to your feature branch. Remember you can **only force push to a branch you are 'in charge' of** (usually only feature branches).
+		* See [Git FAQ.md](Git FAQ.md) "How do I force push?" for help.
+		
+If you're confused about "remote branch", see [Git FAQ.md](Git FAQ.md) "What is the difference between local and remote branches?" for help.
+
+### 3. When work is complete, clean up your commits   
+
+#### a) Cleaning up your commits before a pull request with interactive rebase
+
+* In general, squash commits to one commit per work item unless you have a *compelling reason* to use multiple commits.
+	* A *compelling reason* to have multiple commits (A,B,...) would be to seperate code changes into one or more sets of functionality-affecting, **buildable** changes
+		* For example: You squash your changes into only 2 commits (A and B) because there is a possibility that, in the future, you will want to revert the changes made in commit A while retaining the changes made in    
+			commit B or vice versa. This works because you can revert either A or B and still have a **buildable** result.
+	* Definitely squash commits like "typo fix", "forgot to do stuff", or "renames a thing".
+* Reword commits for clarity. For example, change "adding tests" to "Task #123 Adding tests for xyz functionality".
+	* **Always prepend a related TFS work item ID to commits** (whether it be a requirement number, bug number, or task number).
+	
+1. You can squash and reword your commits with interactive rebase:
+* To determine how many commits to include, examine the commit log to see how many commmits you used.
+	* Run `git log` using `UP` and `DOWN` arrow keys to navigate and `q` to exit.
+	* To view only the top `x` commits, run `git log -x`.
+* Perform an interactive rebase with the correct number of commits.
+	* `git rebase -i HEAD~<number of commits>` --- Example: `git rebase -i HEAD~3` will use the top 3 commits
+	* This will open up a linux-based text editor, if you want a Notepad-like interface, install [Git Extensions](http://gitextensions.github.io).
+	* You should see the following pop up: (Note that if you remove *everything*, save, and close, your rebase will be aborted.)
+	
+```		
+ pick 2edd6c4 Req #12981 Commit 1
+ pick 2f93420 Req #12981 Commit 2
+
+# Rebase bf26585..2f93420 onto bf26585 (2 commands)
+#
+# Commands:
+# p, pick = use commit
+# r, reword = use commit, but edit the commit message
+# e, edit = use commit, but stop for amending
+# s, squash = use commit, but meld into previous commit
+# f, fixup = like "squash", but discard this commit's log message
+# x, exec = run command (the rest of the line) using shell
+# d, drop = remove commit
+#
+# These lines can be re-ordered; they are executed from top to bottom.
+#
+# If you remove a line here THAT COMMIT WILL BE LOST.
+#
+# However, if you remove everything, the rebase will be aborted.
+#
+# Note that empty commits are commented out
 ```
-1ab9e9d HEAD@{0}: commit: Add image for markdown
-...
-78f6b12 HEAD@{9}: commit: Add images for markdown
-b805900 HEAD@{10}: pull: Fast-forward
-bf26585 HEAD@{11}: checkout: moving from test_branch to master
-6aa9233 HEAD@{12}: rebase -i (finish): returning to refs/heads/test_branch
-6aa9233 HEAD@{13}: rebase -i (fixup): Updated Git Workflow.md
-bf26585 HEAD@{14}: rebase -i (start): checkout HEAD~2
-1aceae0 HEAD@{15}: rebase -i (finish): returning to refs/heads/test_branch
-1aceae0 HEAD@{16}: rebase -i (squash): test commit
-2edd6c4 HEAD@{17}: rebase -i (start): checkout HEAD~2
-2f93420 HEAD@{18}: commit: commit 2
+* Replace `pick` in front of each commit with whichever command you need.
+	* If you want to have all of the changes in one commit with "Commit 1" as the main commit:
+		* Keep `pick` for "Commit 1" (unless you need to `reword` to add the TFS work item ID)
+		* Replace `pick` with either `squash` or `fixup` for "Commit 2"
+			* `squash` will keep the "Req #12981 Commit 2" message while `fixup` will discard it
+Example:
 ```
-* You can use git reset to move to a previous git state, in general:
-  * `git reset --hard HEAD@{#}`
-* For example, if we wanted to 'undo' the rebase shown, we would:
-  * `git reset --hard HEAD@{18}`
-* This puts you where you were before the rebase and after you commited "commit 2".
-  * You can see that you have made "commit 2" in this state by looking at the top of the `git log` output
-* If you've messed up you can go to the git ref before your "reset" with another reset.
-  * If you haven't done anything else, this would be:
-    * `git reset --hard HEAD@{1}`
-  * Otherwise look at the `git reflog` to determine where one step before your reset is.
+ pick 2edd6c4 Req #12981 Commit 1
+ fixup 2f93420 Req #12981 Commit 2 
+```
+* Save and close your text editor. This will finish the rebase process or it will prompt you again to make commit message changes with the text editor. (This would happen if you used `reword` or `squash`)
+* Use `git log` and the arrow keys to examine your commit history (exit with `q`)
+* If everything looks good, push your changes:
+	* `git push origin <feature_branch>
+	* Note that after rebase operations, you may need to force push to your feature branch. Remember you can **only force push to a branch you are 'in charge' of** (usually only feature branches).
+		* See [Git FAQ.md](Git FAQ.md) "How do I force push?" for help.
+* **If you need to "undo" your rebase, see "How do I recover from mistakes or a bad command?" in [Git FAQ.md](Git FAQ.md) for help.**
 
-### How do I recover with a backup branch?
+### 4. Create a pull request with the work item ID prepended (ex. "Req #1234 ...").
 
-This is fairly simple: delete the original branch that is in a bad state and use the "_BACKUP" branch instead (renaming it to the original).
+#### a) Making sure everything is up to date
 
-* This is **only** if you have made a _BACKUP branch.
-* Delete the bad branch:
-  * `git branch -D <feature_branch>` to delete locally
-  * `git push origin --delete <feature_branch>` to delete remotely
-* Rename the _BACKUP branch:
-  * git branch -m <branch>_BACKUP <branch>
-  * git push -u origin <branch>
+* Follow the steps in **2. a) Making sure you're up to date with rebase**.
 
-### What can be undone? Force push?
+#### b) Starting the pull request
+1. In TFS, navigate to the repository where your feature branch is located.
+	* Click **CODE**
+	* Select the repository from the drop down box under code (Ex. select "EFT")
+	* Click the **Pull Requests** tab.
+	* At this point, if you recently committed your feature branch, you may see a quick link to create a pull request.  If not:
+	* Click the blue **New pull request** button in the top right.
+	* Where it says "Review changes in `Select a branch...` relative to `master`":
+		* Change `Select a branch...` to your feature branch (i.e. `<initials>_<workItem ID>`)
+		* **Change `master` to your feature branch's parent `<parent_branch>`**
+			* This is important, **do not** pull request relative to `master`
+	* In the title bar above **DESCRIPTION** the PR title **must have the TFS work item ID prepended.** (ex. "Bug #109522 ...")
+		* (TFS uses this to link the pull request changes with the work item.)
+	* In the **DESCRIPTION** box, include a helpful description of what happened and why for your reviewers and for future reference.
+		* For example, a helpful description might:
+			* List what functionality was added or changes made.
+			* Briefly state what motivated these code changes.
+			* Note if you made decisions based on assumptions that might not always hold true. 
+			* Leave a note or question for the reviewers.
+	* Add one or more peer reviewers.
 
-Force pushes cannot be undone. Force pushing to master should **never** happen. 
+#### c) Adding peer reviewer(s). 
+* Under **REVIEWERS**, remove any automatically populated groups.
+	* For example, in EFT, you would remove "globalscape\[EFT Server]".
+* Then add one or more peer reviewers to **REVIEWERS**.
+	* This should be:
+		* Someone on your team who knows the area of code you are working on
+		* Otherwise, someone else who knows the code or platform you're working on.
+		* Otherwise, your team lead.
+		* If your code involves a significant architexture change, add Greg as a peer reviewer (and explain the architecture change).
+* For more information on how peer reviews should work, see the next section (d) and "How do peer reviews work?" in [Git FAQ.md](Git FAQ.md).
 
-Things that can be undone involve everything on local—you should be doing a rebase locally and making sure that it’s 100% good to go before pushing anywhere. If you screw up locally, no big deal, 
-you can always force-pull from remote to get your branch back in a good state. The answer here is: if you aren’t sure, find someone who knows to look over your shoulder and be your sanity check. Communication!!!! 
-Better to measure twice and cut once than cut once and lose your finger. 
+#### d) Opening and completing the pull request
 
-### How do I edit or change my commit message?
+1. Double check that you are happy with the state of your pull request.
+2. Click the button "New pull request" to finish and open the pull request.
+	* If there are merge conflicts when you open the pull request:
+		* Fix code conflicts and perform rebase. (See "How do I manage code conflicts?" in [Git FAQ.md](Git FAQ.md).)
+3. Address any comments that come in through your reviewer.
+	* Once you have your alerts set up, TFS will automatically inform you of changes to your pull requests   
+		See [Git Beginner Guide.md](Git Beginner Guide.md) "Setting up TFS alerts" for help with alerts.
+4. No more action on the pull request is required by you, when the last peer reviewer accepts your changes, that person should hit    
+	the "Complete pull request" button. See [Git FAQ.md](Git FAQ.md) "About pull requests" for more information.
+5. Once your last peer reviewer completes the pull request, update the corresponding work item in TFS:
+	* In the work item under **STATUS**
+		* Set the `Assigned To` field to `Ivan Vasquez`
+		* Set the `State` to `Resolved`
+	* For any child `Task` that you completed, under **STATUS**
+		* Set the `State` to `Resolved`
+		* Leave the `Assigned To` field as yourself.	
 
-#### For your most recent commit
+#### e) Cleaning up
 
-See "Changing your last commit" in [Git Beginner Guide.md](Git Beginner Guide.md).
+1. Delete the local feature branch: 
+	* `git branch -D <feature_branch>` 
+	* Note: You can't delete a branch while you have it checked out. You can delete your feature branch from master (do `git checkout master` first).
+2. Delete any BACKUP branches you made both locally and remotely:
+	* `git branch -D <feature_branch>_BACKUP` for local
+	* `git push origin --delete <feature_branch>_BACKUP` for remote
+	* You do not have to remove your feature branch from remote because closing the pull request does this automatically.
+	
+## Hotfix Workflow Summary
 
-#### For other commits
+Follow this workflow if you've been assigned a TFS work item for a hotfix. You should be assigned a TFS `Bug` with an associated TFS `Task` telling you where the hotfix is needed.
 
-See "3. a) Cleaning up your commits before a pull request with interactive rebase" in [Git Workflow.md](Git Workflow.md).
+When you receieve a hotfix `Task`:
+* Under **STATUS** of the `Task`, change the `State` to `Active`
+* Create a branch for your hotfix following the naming convention `<version>_<customer>_Hotfix_<workItem ID>` (ex. "7.3.1.2_Scripps_Hotfix_341088").
+	* This should branch off of whichever build you need the hotfix on. If the version does not exist as a branch, you will need to pull it by tag: see "How do I pull an exact build?" in [Git FAQ.md](Git FAQ.md) for help.
+* Make the necessary changes to release to the customer and create the binaries as usual.
+* When work is complete, put the location of the binaries to release to the customer in the **FIX** tab of the parent `Bug` and add information about how you implemented the fix.
+* Set the parent `Bug` field `State` to `Resolved` and the `Assigned To` to a Level 3 Support.
+* Resolve any issues support might have.
+* When the hotfix is stagnant for more than 30 days, tag and delete the branch. (See "How do I tag and delete a branch?" in [Git FAQ.md](Git FAQ.md).
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+If Product Management decides this hotfix should be included in current versions, they will make a new child `Task` for each version the fix should be applied to. If you are then assigned this `Task`, follow the "General Workflow" above
+ to complete the work. Note that you will most likely want to cherry-pick the changes from your hotfix branch. (See "What does "cherry pick" mean?" in [Git FAQ.md](Git FAQ.md) for more info.)
 
-## Unanswered Questions
+TODO - update this to be more specific about how the binaries should be released?
 
-### what a merge (push?) to master (or any branch) entails - and when it happens?
-### where do we build from to send to QA?
- – whatever branch QA wants. If its develop then its develop, maintenance from maintenance, etc. 
-### where do we build from to send GA? 
-these will be from master (?). after everything has been cleared by QA.
-### where do we build from to send hotfix?
-?????
-### how is CPR process affected?
-Not sure how CPR is working for EFT at the moment, CPR process seems a bit fast and loose across the dept.
+
+## Team Lead Workflow
+
+This section documents how team leads should be working with git. If you are the team lead for a roadmap project, you are 'in charge' of any associated roadmap branches.
+ (See "Who is 'in charge' of a given branch?" in [Git FAQ.md](Git FAQ.md) for more details.)
  
+### Keep your roadmap branch(es) up to date daily
 
+This is to ensure you are always including new changes made by your team on the project. This should be done before a rebase.
+* `git pull --rebase` for all roadmap branches
 
+### Rebase from any roadmap branch you are in charge of daily
 
+This rebase is to ensure that your project(s) are up to date with the most recent changes. First, you will check to see if there are any changes that need    
+to be rebased. If there are no changes, there is no need to rebase (since there is nothing to rebase). If there are changes, you will perform the rebase for your branch.   
+See [Git FAQ.md](Git FAQ.md) "What does rebase do?" for more information on how rebase works.
 
+For each roadmap branch you are 'in charge' of:
+1. Check to see if there are any changes from master:
+	* `git checkout master` 
+	* `git pull --rebase`
+	* If this returns no changes, you're done! There are no changes to update your branch with. 
+	* Otherwise proceed to step 2.
+2. Rebase your roadmap branch:
+	* Run `git rebase master` from your roadmap branch.
+	
+Note: After rebase operations, you may need to force push to your roadmap branch. See [Git FAQ.md](Git FAQ.md) "How do I force push?" for help.
 
+If you feel you have a *very compelling* reason not to rebase, you need to get special permission to not rebase.
+
+### Finish work on a roadmap branch
+
+When your team has completed work for a roadmap branch and the changes need to be merged into master, you are in charge of the merge.
+
+* Before-Merge Checklist
+1. You must have permission or been told to do the merge by Product Management.
+2. Make sure the roadmap branch is rebased onto the lastest master
+3. Ensure all code in your roadmap branch has been through QA and is 100% production-ready.
+* Merge steps:
+	* merge
+	* resolve any code conflicts
+	* tag and delete the branch (See "How do I tag and delete a branch?" in [Git FAQ.md](Git FAQ.md).)
+
+TODO - details
