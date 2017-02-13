@@ -134,7 +134,7 @@ Each roadmap branch corresponds to a roadmap project. This branch type is common
 
 #### Example roadmap branches
 
-![](/Processes and Guidelines/lib/images/develop-branch.jpg)
+![](/lib/images/develop-branch.jpg)
 
 ### What is a release branch?
 
@@ -150,7 +150,7 @@ Release branches are branches where we maintain previous releases. For example, 
 
 Release branches should never have `master` rebased onto them. If a change from `master` branch is needed on the `release` branch, it should be cherry-picked. See "What does "cherry pick" mean?" for more on cherry picking.
 
-![](/Processes and Guidelines/lib/images/maintenance-branch.jpg)
+![](/lib/images/maintenance-branch.jpg)
 
 ### What is a quarterly maintenance branch?
 
@@ -166,7 +166,7 @@ This branch is used to encompass code changes for each quarter that are not with
 
 Quarterly maintenance branches are off of `master` and `release` branches. 
 
-![](/Processes and Guidelines/lib/images/quarterly-branch.jpg)
+![](lib/images/quarterly-branch.jpg)
 
 ### What is a feature branch (topic branch)?
 
@@ -187,7 +187,7 @@ everyone can see who owns a particular branch and know which requirement or bug 
 This example shows that feature branches can come off of any branch but `master`. Also note that the feature branch will rebase with its parent branch (the pink arrows). This should happen daily.
 See [Git Workflow.md](Git Workflow.md) 2. a) Making sure you're up to date with rebase"
 
-![](/Processes and Guidelines/lib/images/temporary-branch.jpg)
+![](lib/images/temporary-branch.jpg)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -209,7 +209,7 @@ Itâ€™s important to understand that, even though the branch looks the same, itâ€
 
 The command `git rebase <base>` rebases the current branch *onto* <base>. In our case, base will be the <parent_branch>. The general process can be visualized as the following:
 
-![](/Processes and Guidelines/lib/images/rebase-example.png)
+![](lib/images/rebase-example.png)
 
 ### How do I rebase?
 
@@ -243,7 +243,7 @@ In what cases do rebases happen? (The pink arrows represent rebases.) **Again: D
   
 For information about the different branch types, see "Branch Structure Overview".
 
-![](/Processes and Guidelines/lib/images/rebase-overview.jpg)
+![](lib/images/rebase-overview.jpg)
 
 ### How do I force push?
 
@@ -314,7 +314,7 @@ The author of a pull request will be the peer reviewer who hits "Complete pull r
 
 Note that both the green and red commits are about Bug #341573. The difference is that the PR 877 commit shows the author as the peer reviewer who completed the PR, and the original commit shows the author as the person who made the code changes.
 
-![](/Processes and Guidelines/lib/images/pr-author.png)
+![](lib/images/pr-author.png)
 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
